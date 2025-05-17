@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>Петр Великий: путь реформатора (Мобильная WEB версия)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+<style>
+  body { margin: 0; background: #eee; overflow: hidden; }
+  canvas { background: #fff; display: block; margin: 0 auto; touch-action: none; }
+  #dialog {
+    position: fixed;
+    bottom: 130px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 700px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 15px;
+    font-family: Arial, sans-serif;
+    font-size: 18px;
+    border-radius: 8px;
+    display: none;
+    z-index: 10;
+  }
+  #choices {
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 90%;
+    max-width: 700px;
+    background: rgba(30,30,30,0.9);
+    padding: 10px;
+    border-radius: 8px;
+    display: none;
+    text-align: center;
+    z-index: 10;
+  }
+  #choices button {
+    margin: 5px;
+    padding: 10px 18px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 6px;
+    border: none;
+    background: #666;
+    color: white;
+    transition: background 0.3s;
+  }
+  #choices button:hover {
+    background: #999;
+  }
+  #location {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: Arial, sans-serif;
+    font-size: 20px;
+    font-weight: bold;
+    z-index: 10;
+  }
+
+  /* Контейнер для кнопок управления */
+  #controls {
+    position: fixed;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 260px;
+    height: 90px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    z-index: 20;
+    user-select: none;
+  }
+
+  /* Кнопки направления */
+  .btn {
+    width: 60px;
+    height: 60px;
+    background: rgba(50,50,50,0.5);
+    border-radius: 15px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 32px;
+    font-weight: bold;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: none;
+    transition: background 0.3s;
+  }
+  .btn:active, .btn.pressed {
+    background: rgba(100,100,100,0.8);
+  }
+</style>
+</head>
+<body>
+
+<div id="location">Локация: Дворец</div>
+<canvas id="game" width="800" height="600"></canvas>
+<div id="dialog"></div>
+<div id="choices"></div>
+
+<!-- Кнопки управления для мобильных -->
+<div id="controls">
+  <div id="btn-left" class="btn">&#8592;</div>
+  <div id="btn-up" class="btn">&#8593;</div>
+  <div id="btn-down" class="btn">&#8595;</div>
+  <div id="btn-right" class="btn">&#8594;</div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const dialogBox = document.getElementById('dialog');
+  const choicesBox = document.getElementById('choices');
+  const locationLabel = document.getElementById('location');
+
+  const WIDTH = canvas.width;
+  const HEIGHT = canvas.height;
+
+  const LOCATIONS = ['Дворец', 'Верфь', 'Город'];
+  let currentLocation = 0;
+
+  let keysPressed = {};
+  let dialogueActive = false;
+  let currentDialogueNode = null;
+  let collectedWood = false;
+  let inStoryDialogue = false;
+
+  // Добавим состояние для кнопок управления (чтобы двигать)
+  const controlState = {
+    left: false,
+    right: false,
+    up: false,
+    down: false
+  };
+
+  // Создаём персонажей и функции
+
+  function createCharacterFrames(baseColor) {
+    const frames = [];
+    for(let i=0; i<4; i++) {
+      const c = baseColor.map(ch => Math.min(Math.max(ch - i*30, 0), 255));
+      frames.push(c);
+    }
+    return frames;
+  }
+
+  class Character {
+    constructor(x, y, frames, name, isPlayer=false) {
+      this.x = x;
+      this.y = y;
+      this.frames = frames;
+      this.currentFrame = 0;
+      this.name = name;
+      this.isPlayer = isPlayer;
+      this.speed = isPlayer ? 4 : 0;
+      this.width = 40;
+      this.height = 60;
+      this.animationTimer = 0;
+      this.animationDelay = 150;
+      this.dialogues = [];
+      this.dialogueIndex = 0;
+      this.quest = null;
+      this.questGiven = false;
+    }
+
+    update(delta, keys) {
+      if (dialogueActive && inStoryDialogue) return;
+
+      let moved = false;
+      if(this.isPlayer && keys) {
+        if(keys.ArrowLeft || controlState.left) { this.x -= this.speed; moved = true; }
+        if(keys.ArrowRight || controlState.right) { this.x += this.speed; moved = true; }
+        if(keys.ArrowUp || controlState.up) { this.y -= this.speed; moved = true; }
+        if(keys.ArrowDown || controlState.down) { this.y += this.speed; moved = true; }
+      }
+
+      this.animationTimer += delta;
+      if(moved && this.animationTimer >= this.animationDelay) {
+        this.currentFrame = (this.currentFrame +1) % this.frames.length;
+        this.animationTimer = 0;
+      }
+      if(!moved) {
+        this.currentFrame = 0;
+      }
+
+      this.x = Math.min(Math.max(this.x, 0), WIDTH - this.width);
+      this.y = Math.min(Math.max(this.y, 30), HEIGHT - this.height);
+    }
+
+    draw(ctx) {
+      const c = this.frames[this.currentFrame];
+      ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+
+      ctx.fillStyle = "black";
+      ctx.font = "16px Arial";
+      ctx.fillText(this.name, this.x, this.y - 10);
+    }
+
+    collidesWith(other) {
+      return !(this.x + this.width < other.x ||
+               this.x > other.x + other.width ||
+               this.y + this.height < other.y ||
+               this.y > other.y + other.height);
+    }
+  }
+
+  const peterFrames = createCharacterFrames([50, 50, 200]);
+  const advisorFrames = createCharacterFrames([50, 180, 50]);
+  const workerFrames = createCharacterFrames([200, 100, 50]);
+  const merchantFrames = createCharacterFrames([180, 50, 50]);
+
+  const peter = new Character(100, 100, peterFrames, "Петр I", true);
+  const advisor = new Character(400, 300, advisorFrames, "Советник");
+  const worker = new Character(150, 400, workerFrames, "Рабочий");
+  const merchant = new Character(600, 200, merchantFrames, "Купец");
+
+  const npcs = [advisor, worker, merchant];
+
+  const dialogueTree = {
+    start: {
+      text: "Советник: Ваше Величество, как поступим с новыми реформами?",
+      options: [
+        { text: "Продолжить реформы быстро и жёстко", next: "hard_reform" },
+        { text: "Действовать осторожно, договариваться с боярами", next: "soft_reform" }
+      ]
+    },
+    hard_reform: {
+      text: "Вы решили действовать быстро и решительно. Некоторые бояре недовольны.",
+      options: [
+        { text: "Игнорировать недовольство", next: "ignore_nobles" },
+        { text: "Попытаться смягчить реформы", next: "soften_reform" }
+      ]
+    },
+    soft_reform: {
+      text: "Вы выбрали путь компромиссов. Реформы идут медленно, но мирно.",
+      options: [
+        { text: "Усилить реформы в будущем", next: "strengthen" },
+        { text: "Продолжить осторожно", next: "continue_cautious" }
+      ]
+    },
+    ignore_nobles: {
+      text: "Бояре восстали! Началась смута...",
+      options: [
+        { text: "Подавить восстание силой", next: "end_hard" },
+        { text: "Попытаться договориться", next: "soften_reform" }
+      ]
+    },
+    soften_reform: {
+      text: "Реформы идут, но с меньшим сопротивлением.",
+      options: [
+        { text: "Продолжить реформы", next: "end_soft" }
+      ]
+    },
+    strengthen: {
+      text: "Реформы ускорены, народ смотрит с опаской.",
+      options: [
+        { text: "Продолжить реформы", next: "end_hard" }
+      ]
+    },
+    continue_cautious: {
+      text: "Вы удерживаете мир, но реформы медленные.",
+      options: [
+        { text: "Продолжить", next: "end_soft" }
+      ]
+    },
+    end_hard: {
+      text: "Ваши решительные реформы дали быстрый результат, но цена была велика.",
+      options: []
+    },
+    end_soft: {
+      text: "Мир сохранён, реформы идут медленно, но уверенно.",
+      options: []
+    }
+  };
+
+  function showDialogueNode(nodeKey) {
+    const node = dialogueTree[nodeKey];
+    if(!node) {
+      dialogueActive = false;
+      inStoryDialogue = false;
+      dialogBox.style.display = 'none';
+      choicesBox.style.display = 'none';
+      return;
+    }
+    dialogueActive = true;
+    inStoryDialogue = true;
+    currentDialogueNode = nodeKey;
+    dialogBox.textContent = node.text;
+    dialogBox.style.display = 'block';
+
+    choicesBox.innerHTML = '';
+    if(node.options && node.options.length > 0) {
+      choicesBox.style.display = 'block';
+      node.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt.text;
+        btn.onclick = () => {
+          showDialogueNode(opt.next);
+          if(opt.next === 'end_hard' || opt.next === 'end_soft') {
+            setTimeout(() => {
+              dialogueActive = false;
+              inStoryDialogue = false;
+              dialogBox.style.display = 'none';
+              choicesBox.style.display = 'none';
+            }, 3000);
+          }
+        };
+        choicesBox.appendChild(btn);
+      });
+    } else {
+      choicesBox.style.display = 'none';
+      setTimeout(() => {
+        dialogueActive = false;
+        inStoryDialogue = false;
+        dialogBox.style.display = 'none';
+      }, 4000);
+    }
+  }
+
+  function updateLocationLabel() {
+    locationLabel.textContent = "Локация: " + LOCATIONS[currentLocation];
+  }
+
+  function drawBackground() {
+    if(currentLocation === 0) {
+      ctx.fillStyle = 'rgb(200, 200, 250)';
+    } else if(currentLocation === 1) {
+      ctx.fillStyle = 'rgb(180, 220, 180)';
+    } else {
+      ctx.fillStyle = 'rgb(250, 230, 200)';
+    }
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  }
+
+  function gameLoop(timestamp=0) {
+    ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+    drawBackground();
+
+    const delta = timestamp - (gameLoop.lastTimestamp || 0);
+    gameLoop.lastTimestamp = timestamp;
+
+    peter.update(delta, keysPressed);
+
+    npcs.forEach(npc => npc.draw(ctx));
+    peter.draw(ctx);
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  // Обработчики для кнопок управления
+
+  function setupButton(id, direction) {
+    const btn = document.getElementById(id);
+
+    function press() {
+      btn.classList.add('pressed');
+      controlState[direction] = true;
+    }
+    function release() {
+      btn.classList.remove('pressed');
+      controlState[direction] = false;
+    }
+
+    btn.addEventListener('touchstart', e => { e.preventDefault(); press(); });
+    btn.addEventListener('touchend', e => { e.preventDefault(); release(); });
+    btn.addEventListener('touchcancel', e => { e.preventDefault(); release(); });
+    btn.addEventListener('mousedown', e => { e.preventDefault(); press(); });
+    btn.addEventListener('mouseup', e => { e.preventDefault(); release(); });
+    btn.addEventListener('mouseleave', e => { e.preventDefault(); release(); });
+  }
+
+  setupButton('btn-left', 'left');
+  setupButton('btn-right', 'right');
+  setupButton('btn-up', 'up');
+  setupButton('btn-down', 'down');
+
+  // Клавиатурное управление (для десктопа)
+
+  window.addEventListener('keydown', e => {
+    if(dialogueActive && inStoryDialogue) return;
+
+    keysPressed[e.key] = true;
+
+    if(e.key === 'n' || e.key === 'N') {
+      currentLocation = (currentLocation + 1) % LOCATIONS.length;
+      peter.x = 100;
+      peter.y = 100;
+      updateLocationLabel();
+    }
+
+    if(e.key === ' ') {
+      if(dialogueActive && !inStoryDialogue) {
+        dialogueActive = false;
+        dialogBox.style.display = 'none';
+      } else {
+        for(let npc of npcs) {
+          if(peter.collidesWith(npc)) {
+            if(npc === advisor) {
+              showDialogueNode('start');
+            } else if(npc === worker && !collectedWood) {
+              collectedWood = true;
+              dialogueActive = true;
+              inStoryDialogue = false;
+              currentDialogueNode = null;
+              dialogBox.textContent = "Вы собрали древесину для верфи!";
+              dialogBox.style.display = 'block';
+              choicesBox.style.display = 'none';
+              setTimeout(() => {
+                dialogueActive = false;
+                dialogBox.style.display = 'none';
+              }, 3000);
+            } else if(npc === merchant) {
+              dialogueActive = true;
+              inStoryDialogue = false;
+              currentDialogueNode = null;
+              dialogBox.textContent = "Купец: Могу продать материалы по выгодной цене!";
+              dialogBox.style.display = 'block';
+              choicesBox.style.display = 'none';
+              setTimeout(() => {
+                dialogueActive = false;
+                dialogBox.style.display = 'none';
+              }, 3000);
+            }
+            break;
+          }
+        }
+      }
+    }
+
+    if(e.key === 'Escape') {
+      if(dialogueActive) {
+        dialogueActive = false;
+        inStoryDialogue = false;
+        dialogBox.style.display = 'none';
+        choicesBox.style.display = 'none';
+      }
+    }
+  });
+
+  window.addEventListener('keyup', e => {
+    keysPressed[e.key] = false;
+  });
+
+  updateLocationLabel();
+  gameLoop();
+})();
+</script>
+
+</body>
+</html>
