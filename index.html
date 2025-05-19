@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<title>Петр Великий — Итоговый анализ и альтернативные истории</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Merriweather:wght@400;700&display=swap');
+
+body {
+  margin: 0;
+  background: #2e1a11; /* глубокий тёмно-коричневый с оттенком красного */
+  font-family: 'Merriweather', serif;
+  color: #f5e6c4; /* мягкий кремовый, как старинная бумага */
+  user-select: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#instruction, #location, #dialog, #choices, #fact-container {
+  background: rgba(37, 20, 11, 0.85); /* тёмно-бордовый полупрозрачный */
+  border: 2px solid #cba14f; /* золотой */
+  border-radius: 12px;
+  box-sizing: border-box;
+  text-align: center;
+  font-size: 16px;
+  padding: 20px 30px;
+  margin-top: 15px;
+  box-shadow: 0 0 12px #b9984f88;
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+}
+
+#location {
+  font-family: 'Great Vibes', cursive;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffd965;
+  text-shadow: 1px 1px 3px #b9984fcc;
+  margin-bottom: 5px;
+}
+
+#game-container {
+  width: 940px;
+  height: 440px;
+  background: #3c2519; /* насыщенный кофейный оттенок */
+  border: 4px solid #cba14f;
+  border-radius: 16px;
+  box-shadow: 0 0 20px #d1b964cc inset;
+  position: relative;
+  margin-top: 20px;
+}
+
+canvas#game {
+  display: block;
+  margin: 0 auto;
+  background: #3c2519;
+  border-radius: 14px;
+  border: 3px solid #cba14f;
+  box-shadow: 0 0 12px #d1b964cc inset;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#choices button {
+  background: #5d3e16;
+  border: 2px solid #cba14f;
+  color: #f5e6c4;
+  font-family: 'Merriweather', serif;
+  font-size: 14px;
+  padding: 12px 24px;
+  margin: 8px 8px 8px 8px;
+  cursor: pointer;
+  border-radius: 10px;
+  box-shadow: 0 0 8px #b9984faa;
+  transition: background-color 0.25s ease, color 0.25s ease;
+  user-select: none;
+}
+
+#choices button:hover, #choices button:focus {
+  background: #cba14f;
+  color: #3c2519;
+  outline: none;
+  box-shadow: 0 0 12px #ffd965cc;
+}
+
+#fact-container {
+  font-size: 14px;
+  height: 180px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  font-family: 'Merriweather', serif;
+}
+
+#summary-btn, #summary-close {
+  background: #5d3e16;
+  border: 3px solid #cba14f;
+  font-family: 'Merriweather', serif;
+  color: #f5e6c4;
+  padding: 14px 36px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 20px;
+  border-radius: 14px;
+  box-shadow: 0 0 12px #b9984faa;
+  user-select: none;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+#summary-btn:hover, #summary-close:hover {
+  background: #cba14f;
+  color: #3c2519;
+  box-shadow: 0 0 16px #ffd965cc;
+}
+
+#summary-modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(46, 26, 17, 0.95);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+#summary-content {
+  background: #5d3e16;
+  border: 3px solid #cba14f;
+  padding: 30px 40px;
+  max-height: 80vh;
+  overflow-y: auto;
+  width: 720px;
+  font-size: 16px;
+  color: #f5e6c4;
+  font-family: 'Merriweather', serif;
+  border-radius: 16px;
+  line-height: 1.7;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 24px #d1b964cc;
+}
+
+#summary-content h2 {
+  font-family: 'Great Vibes', cursive;
+  font-size: 32px;
+  margin-bottom: 28px;
+  color: #ffd965;
+  text-shadow: 1px 1px 5px #b9984fcc;
+}
+.stat-container {
+  margin: 12px 0;
+}
+.stat-label {
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.progress-bar {
+  background: #5d3e16;
+  border: 2px solid #cba14f;
+  border-radius: 12px;
+  overflow: hidden;
+  height: 22px;
+  box-shadow: inset 0 0 8px #b9984faa;
+  position: relative;
+}
+.progress-fill {
+  background: #ffd965;
+  height: 100%;
+  width: 0%;
+  transition: width 0.5s ease;
+  box-shadow: 0 0 12px #ffd965cc;
+}
+.progress-text {
+  text-align: center;
+  color: #3c2519;
+  font-weight: 700;
+  position: absolute;
+  width: 100%;
+  top: 0;
+  left: 0;
+  user-select: none;
+  font-family: 'Merriweather', serif;
+  line-height: 22px;
+}
+</style>
+</head>
+<body>
+
+
+  <button id="summary-btn">Показать итоги и альтернативные истории</button>
+  <!-- Модальное окно с инструкцией -->
+<div id="instruction-modal" style="display:none; position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.8); 
+  display: flex; justify-content: center; align-items: center; z-index: 20;">
+  <div style="background: #5d3e16; color: #f5e6c4; padding: 30px 40px; border: 3px solid #cba14f; border-radius: 16px; max-width: 600px; font-family: 'Merriweather', serif; line-height: 1.5; text-align: left;">
+    <h2 style="font-family: 'Great Vibes', cursive; font-size: 28px; margin-bottom: 20px; color: #ffd965;">Инструкция по управлению</h2>
+    <p>— Для перемещения используйте стрелки на клавиатуре.</p>
+    <p>— Подойдите к персонажу и нажмите <strong>ПРОБЕЛ</strong>, чтобы начать диалог.</p>
+    <p>— В диалоге выбирайте варианты ответов нажатием на него.</p>
+    <button id="instruction-close-btn" style="margin-top: 20px; padding: 12px 28px; font-size: 16px; border-radius: 12px; border: 2px solid #cba14f; background: #5d3e16; color: #f5e6c4; cursor: pointer;">Понятно</button>
+  </div>
+</div>
+
+</div>
+<div id="game-container">
+  <canvas id="game" width="940" height="440"></canvas>
+</div>
+<div id="dialog"></div>
+<div id="choices"></div>
+<div id="fact-container">Подойдите к персонажу и начните диалог.</div>
+
+<!-- Итоговое модальное окно -->
+<div id="summary-modal">
+  <div id="summary-content">
+    <div id="summary-text"></div>
+    <button id="summary-close">Закрыть</button>
+  </div>
+</div>
+
+<script>
+(() => {
+
+    const empireStats = {
+  economy: 0,
+  army: 0,
+  diplomacy: 0,
+  reforms: 0,
+  stability: 0,
+};
+
+function updateEmpireStats(changes) {
+  for (const [key, val] of Object.entries(changes)) {
+    if (empireStats[key] !== undefined) {
+      empireStats[key] += val;
+    }
+  }
+}
+
+function describeStat(value) {
+  if (value >= 3) return 'Отлично';
+  if (value === 2) return 'Хорошо';
+  if (value === 1) return 'Средне';
+  if (value === 0) return 'Нейтрально';
+  if (value === -1) return 'Плохо';
+  if (value <= -2) return 'Критично';
+  return 'Нейтрально';
+}
+
+function createProgressBar(label, value) {
+  const normalized = Math.min(Math.max(value, -3), 3);
+  const percent = ((normalized + 3) / 6) * 100;
+
+  return `
+    <div class="stat-container">
+      <div class="stat-label">${label}</div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:${percent}%;"></div>
+        <div class="progress-text">${describeStat(value)}</div>
+      </div>
+    </div>
+  `;
+}
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  const dialogBox = document.getElementById('dialog');
+  const choicesBox = document.getElementById('choices');
+  const factBox = document.getElementById('fact-container');
+  const summaryBtn = document.getElementById('summary-btn');
+  const summaryModal = document.getElementById('summary-modal');
+  const summaryText = document.getElementById('summary-text');
+  const summaryClose = document.getElementById('summary-close');
+
+  const instructionModal = document.getElementById('instruction-modal');
+const instructionCloseBtn = document.getElementById('instruction-close-btn');
+
+// Показываем модальное окно инструкции при загрузке страницы
+window.addEventListener('load', () => {
+  instructionModal.style.display = 'flex';
+});
+
+// Закрытие модального окна инструкции по кнопке "Понятно"
+instructionCloseBtn.addEventListener('click', () => {
+  instructionModal.style.display = 'none';
+});
+
+// Закрытие модалки по клавише Escape
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && instructionModal.style.display === 'flex') {
+    instructionModal.style.display = 'none';
+  }
+});
+
+// Закрытие модалки при клике вне содержимого
+instructionModal.addEventListener('click', (e) => {
+  if (e.target === instructionModal) {
+    instructionModal.style.display = 'none';
+  }
+});
+
+
+  const WIDTH = canvas.width;
+  const HEIGHT = canvas.height;
+
+  const SPRITE_WIDTH = 40;
+  const SPRITE_HEIGHT = 60;
+  const FRAMES = 4;
+
+  function typeText(element, text, speed = 30, callback) {
+  element.textContent = '';
+  let i = 0;
+  function typing() {
+    if (i < text.length) {
+      element.textContent += text.charAt(i);
+      i++;
+      setTimeout(typing, speed);
+    } else if (callback) {
+      callback();
+    }
+  }
+  typing();
+}
+
+function createCharacterFrames(baseColor) {
+  const frames = [];
+  for(let i=0; i<FRAMES; i++) {
+    const c = document.createElement('canvas');
+    c.width = SPRITE_WIDTH;
+    c.height = SPRITE_HEIGHT;
+    const cctx = c.getContext('2d');
+
+    // Голова
+    cctx.fillStyle = '#f2d5b3';
+    cctx.beginPath();
+    cctx.ellipse(SPRITE_WIDTH/2, 20, 15, 18, 0, 0, 2*Math.PI);
+    cctx.fill();
+
+    // Волосы / борода (простой эффект)
+    cctx.fillStyle = baseColor.hair || '#4b3b2b';
+    cctx.beginPath();
+    cctx.ellipse(SPRITE_WIDTH/2, 15, 16, 10, 0, Math.PI, 2*Math.PI);
+    cctx.fill();
+
+    // Глаза
+    cctx.fillStyle = 'white';
+    cctx.beginPath();
+    cctx.ellipse(SPRITE_WIDTH/2 - 6, 18, 4, 6, 0, 0, 2*Math.PI);
+    cctx.ellipse(SPRITE_WIDTH/2 + 6, 18, 4, 6, 0, 0, 2*Math.PI);
+    cctx.fill();
+
+    cctx.fillStyle = 'black';
+    cctx.beginPath();
+    cctx.ellipse(SPRITE_WIDTH/2 - 6, 18, 2, 3, 0, 0, 2*Math.PI);
+    cctx.ellipse(SPRITE_WIDTH/2 + 6, 18, 2, 3, 0, 0, 2*Math.PI);
+    cctx.fill();
+
+    // Рот
+    cctx.strokeStyle = 'black';
+    cctx.lineWidth = 1.5;
+    cctx.beginPath();
+    cctx.moveTo(SPRITE_WIDTH/2 - 6, 30);
+    cctx.quadraticCurveTo(SPRITE_WIDTH/2, 35 + (i % 2) * 2, SPRITE_WIDTH/2 + 6, 30);
+    cctx.stroke();
+
+    // Шапка
+    cctx.fillStyle = baseColor.hat;
+    cctx.fillRect(5, 2, SPRITE_WIDTH - 10, 10);
+
+    // Украшение на шапке (перо)
+    cctx.strokeStyle = '#fff';
+    cctx.lineWidth = 2;
+    cctx.beginPath();
+    cctx.moveTo(SPRITE_WIDTH - 15, 5);
+    cctx.lineTo(SPRITE_WIDTH - 20, 15);
+    cctx.lineTo(SPRITE_WIDTH - 10, 15);
+    cctx.closePath();
+    cctx.stroke();
+
+    // Тело с деталями (пуговицы)
+    cctx.fillStyle = baseColor.body;
+    cctx.fillRect(10, 38, SPRITE_WIDTH - 20, 20);
+    cctx.fillStyle = '#b37f28';
+    for(let y = 42; y <= 54; y += 6) {
+      cctx.beginPath();
+      cctx.ellipse(SPRITE_WIDTH/2, y, 3, 2, 0, 0, 2*Math.PI);
+      cctx.fill();
+    }
+
+    // Руки (анимация ходьбы, с кистями)
+    cctx.strokeStyle = baseColor.body;
+    cctx.lineWidth = 5;
+    cctx.lineCap = 'round';
+    cctx.beginPath();
+    if(i % 2 === 0) {
+      cctx.moveTo(SPRITE_WIDTH/2, 42);
+      cctx.lineTo(10, 55);
+      cctx.moveTo(SPRITE_WIDTH/2, 42);
+      cctx.lineTo(SPRITE_WIDTH - 10, 50);
+    } else {
+      cctx.moveTo(SPRITE_WIDTH/2, 42);
+      cctx.lineTo(SPRITE_WIDTH - 10, 55);
+      cctx.moveTo(SPRITE_WIDTH/2, 42);
+      cctx.lineTo(10, 50);
+    }
+    cctx.stroke();
+
+    // Ноги (анимация ходьбы)
+    cctx.strokeStyle = baseColor.body;
+    cctx.lineWidth = 5;
+    cctx.lineCap = 'round';
+    cctx.beginPath();
+    if(i % 2 === 0) {
+      cctx.moveTo(SPRITE_WIDTH/2, SPRITE_HEIGHT);
+      cctx.lineTo(10, SPRITE_HEIGHT + 12);
+      cctx.moveTo(SPRITE_WIDTH/2, SPRITE_HEIGHT);
+      cctx.lineTo(SPRITE_WIDTH - 10, SPRITE_HEIGHT + 8);
+    } else {
+      cctx.moveTo(SPRITE_WIDTH/2, SPRITE_HEIGHT);
+      cctx.lineTo(SPRITE_WIDTH - 10, SPRITE_HEIGHT + 12);
+      cctx.moveTo(SPRITE_WIDTH/2, SPRITE_HEIGHT);
+      cctx.lineTo(10, SPRITE_HEIGHT + 8);
+    }
+    cctx.stroke();
+
+    // Аксессуар — меч (слева персонажа)
+    cctx.strokeStyle = '#aaa';
+    cctx.lineWidth = 2;
+    cctx.beginPath();
+    cctx.moveTo(5, 40);
+    cctx.lineTo(5, 70);
+    cctx.stroke();
+    cctx.fillStyle = '#ccc';
+    cctx.fillRect(2, 65, 6, 5);
+
+    frames.push(c);
+  }
+  return frames;
+}
+
+  class Character {
+    constructor(x, y, frames, name, key, isPlayer=false) {
+      this.x = x;
+      this.y = y;
+      this.frames = frames;
+      this.currentFrame = 0;
+      this.animationTimer = 0;
+      this.animationDelay = 200;
+      this.name = name;
+      this.isPlayer = isPlayer;
+      this.speed = isPlayer ? 4 : 0;
+      this.width = SPRITE_WIDTH;
+      this.height = SPRITE_HEIGHT + 12;
+      this.key = key;
+    }
+
+    update(delta, keys) {
+      if(!this.isPlayer) {
+        this.animationTimer += delta;
+        if(this.animationTimer >= this.animationDelay * 3) {
+          this.currentFrame = (this.currentFrame + 1) % this.frames.length;
+          this.animationTimer = 0;
+        }
+        return;
+      }
+      let moved = false;
+      if(keys.ArrowLeft) { this.x -= this.speed; moved = true; }
+      if(keys.ArrowRight) { this.x += this.speed; moved = true; }
+      if(keys.ArrowUp) { this.y -= this.speed; moved = true; }
+      if(keys.ArrowDown) { this.y += this.speed; moved = true; }
+      if(moved) {
+        this.animationTimer += delta;
+        if(this.animationTimer >= this.animationDelay) {
+          this.currentFrame = (this.currentFrame + 1) % this.frames.length;
+          this.animationTimer = 0;
+        }
+      } else {
+        this.currentFrame = 0;
+      }
+      this.x = Math.min(Math.max(this.x, 0), WIDTH - this.width);
+      this.y = Math.min(Math.max(this.y, 30), HEIGHT - this.height);
+    }
+
+    drawTable(ctx) {
+      if(this.isPlayer) return;
+      const tableWidth = 70;
+      const tableHeight = 20;
+      const tableX = this.x + this.width/2 - tableWidth/2;
+      const tableY = this.y + this.height + 4;
+
+      ctx.fillStyle = '#8b5a2b';
+      ctx.fillRect(tableX, tableY, tableWidth, tableHeight);
+      ctx.strokeStyle = '#654321';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(tableX, tableY, tableWidth, tableHeight);
+    }
+
+    draw(ctx) {
+      this.drawTable(ctx);
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      ctx.beginPath();
+      ctx.ellipse(this.x + this.width/2, this.y + this.height - 6, this.width/2, 10, 0, 0, 2*Math.PI);
+      ctx.fill();
+
+      ctx.drawImage(this.frames[this.currentFrame], this.x, this.y);
+      ctx.fillStyle = "black";
+      ctx.font = "14px Arial";
+      ctx.fillText(this.name, this.x + this.width/2, this.y - 10);
+    }
+
+    collidesWith(other) {
+      return !(this.x + this.width < other.x ||
+               this.x > other.x + other.width ||
+               this.y + this.height < other.y ||
+               this.y > other.y + other.height);
+    }
+  }
+
+  const keysPressed = {};
+  window.addEventListener('keydown', e => { keysPressed[e.key] = true; });
+  window.addEventListener('keyup', e => { keysPressed[e.key] = false; });
+
+  // Расположение персонажей в два ряда
+  const marginX = 80;
+  const topY = 80;
+  const bottomY = 300;
+  const topPositionsX = [marginX, WIDTH/2, WIDTH - marginX - SPRITE_WIDTH];
+  const bottomPositionsX = [marginX, WIDTH/2 - SPRITE_WIDTH/2, WIDTH - marginX - SPRITE_WIDTH];
+
+  const charactersData = [
+    {name: "Меншиков", key: "menshikov", color: {hat: '#8B4513', body: '#008000'}, x: topPositionsX[0], y: topY},
+    {name: "Екатерина I", key: "ekaterina", color: {hat: '#FFC0CB', body: '#800080'}, x: topPositionsX[1], y: topY},
+    {name: "Советник", key: "advisor", color: {hat: '#222222', body: '#555555'}, x: topPositionsX[2], y: topY},
+    {name: "Алексей П.", key: "alexei", color: {hat: '#222255', body: '#444488'}, x: bottomPositionsX[0], y: bottomY},
+    {name: "Петр I", key: "peter", color: {hat: '#FFD700', body: '#000080'}, x: bottomPositionsX[1], y: bottomY, isPlayer:true},
+    {name: "Карл XII", key: "charles", color: {hat: '#004488', body: '#002266'}, x: bottomPositionsX[2], y: bottomY},
+    {name: "Фридрих I", key: "frederick", color: {hat: '#880000', body: '#440000'}, x: WIDTH/2 - SPRITE_WIDTH/2, y: topY + 130}
+  ];
+
+  const characters = charactersData.map(ch => new Character(ch.x, ch.y, createCharacterFrames(ch.color), ch.name, ch.key, ch.isPlayer));
+  const peter = characters.find(c => c.isPlayer);
+  const npcs = characters.filter(c => !c.isPlayer);
+
+  const gameState = {
+    fleetDecision: null,
+    reformsDecision: null,
+    alexeiDecision: null,
+    menshikovDecision: null,
+    ekaterinaDecision: null,
+    charlesDecision: null,
+    frederickDecision: null,
+    historyChange: null
+  };
+
+  //  Диалоги
+  const dialogues = {
+   
+    // Диалог с Меншиковым
+    menshikov: {
+      start: {
+        text: "Меншиков: Пётр, продолжение войны может ослабить нашу страну, но если мы победим, то станем могущественной державой. Как решим?",
+        fact: "Меншиков был одним из главных союзников Петра в Северной войне.",
+        options: [
+          {
+            text: "Продолжить войну до победы",
+            next: "continue_war",
+            set: { menshikovDecision: "continue_war" },
+            empireStatsChanges: { army: 2, economy: -1, stability: -1 }
+          },
+          {
+            text: "Заключить мир с Швецией",
+            next: "make_peace",
+            set: { menshikovDecision: "make_peace" },
+            empireStatsChanges: { army: -1, economy: 1, stability: 1 }
+          },
+        ]
+      },
+      continue_war: {
+        text: "Вы решаете продолжить войну. Россия достигает победы в Северной войне, но страдает от больших потерь.",
+        fact: "Победа в Северной войне укрепила Россию и позволила ей получить выход к Балтийскому морю.",
+        options: [{ text: "Продолжить диалог", next: "build_petersburg" }]
+      },
+      make_peace: {
+        text: "Вы решаете заключить мир с Швецией. Потери минимальны, но Россия теряет важные территории.",
+        fact: "Мир с Швецией оставил Россию без значительного выхода к Балтийскому морю, но позволил избежать больших потерь.",
+        options: [{ text: "Продолжить диалог", next: "build_petersburg" }]
+      },
+      build_petersburg: {
+        text: "Меншиков: Пётр, строительство нового города на болоте — амбициозный проект, но требует огромных усилий. Мы можем потратить ресурсы на армию, а не на строительство.",
+        fact: "Строительство Петербурга было одним из самых амбициозных проектов Петра I, который стал столицей Российской империи.",
+        options: [
+          {
+            text: "Продолжить строительство города",
+            next: "continue_petersburg",
+            set: { menshikovDecision: "continue_petersburg" },
+            empireStatsChanges: { economy: -1, reforms: 2, stability: -1 }
+          },
+          {
+            text: "Перенаправить ресурсы на армию",
+            next: "redirect_resources",
+            set: { menshikovDecision: "redirect_resources" },
+            empireStatsChanges: { army: 2, economy: -1 }
+          }
+        ]
+      },
+      continue_petersburg: {
+        text: "Вы решаете продолжить строительство Петербурга, несмотря на потери. Город становится новой столицей России, важнейшим экономическим и культурным центром.",
+        fact: "Строительство Петербурга вывело Россию на новый уровень как мировой державы, обеспечив её важнейший выход к Балтийскому морю.",
+        options: [{ text: "Продолжить диалог", next: "reforms" }]
+      },
+      redirect_resources: {
+        text: "Вы решаете перенаправить ресурсы на армию, что приводит к быстрому укреплению военной мощи России.",
+        fact: "Петербург мог бы быть ещё более развитым, но это решение позволило России выиграть несколько решающих войн.",
+        options: [{ text: "Продолжить диалог", next: "reforms" }]
+      },
+      reforms: {
+        text: "Меншиков: Пётр, твои реформы армии и флота укрепляют нас, но среди аристократии растёт недовольство. Мы должны что-то делать с этим?",
+        fact: "Меншиков был сторонником Петра в его реформировании армии и флота, что привело к мощной российской армии.",
+        options: [
+          {
+            text: "Продолжить реформы, несмотря на протесты",
+            next: "continue_reforms",
+            set: { menshikovDecision: "continue_reforms" },
+            empireStatsChanges: { reforms: 2, stability: -1 }
+          },
+          {
+            text: "Замедлить реформы, чтобы сохранить стабильность",
+            next: "slow_reforms",
+            set: { menshikovDecision: "slow_reforms" },
+            empireStatsChanges: { reforms: -1, stability: 1 }
+          },
+          {
+            text: "Обсудить с боярами возможные изменения",
+            next: "negotiate_with_boyars",
+            set: { menshikovDecision: "negotiate_with_boyars" },
+            empireStatsChanges: { reforms: 0, stability: 1 }
+          }
+        ]
+      },
+      continue_reforms: {
+        text: "Вы решаете продолжить реформы, несмотря на протесты. Армия и флот России становятся мощными, но общество всё больше делится на сторонников и противников.",
+        fact: "Реформы укрепили Россию, но вызвали сопротивление среди дворянства, что привело к социальным потрясениям.",
+        options: [{ text: "Завершить", next: null }]
+      },
+      slow_reforms: {
+        text: "Вы замедляете реформы, чтобы сохранить стабильность в стране, но это ослабляет позиции России на международной арене.",
+        fact: "Медленные реформы позволили сохранить стабильность, но замедлили развитие России в долгосрочной перспективе.",
+        options: [{ text: "Завершить", next: null }]
+      },
+      negotiate_with_boyars: {
+        text: "Вы начинаете переговоры с боярами, пытаясь найти компромисс. Это ослабляет реформистскую власть Петра, но укрепляет внутреннюю стабильность.",
+        fact: "Переговоры с боярами замедлили реформы, но укрепили стабильность и снизили угрозу внутреннего конфликта.",
+        options: [{ text: "Завершить", next: null }]
+      }
+    },
+
+    // Диалог с Екатериной I
+   ekaterina: {
+  start: {
+    text: "Екатерина I: Пётр ушел. Теперь мне предстоит править. Как ты думаешь, какое будущее ожидает нашу страну? Стоит ли продолжить его реформы или изменить курс?",
+    fact: "Екатерина I стала императрицей после смерти Петра I, и её правление сыграло важную роль в стабилизации России после реформ Петра.",
+    options: [
+      {
+        text: "Продолжить реформы Петра I",
+        next: "continue_reforms",
+        set: { ekaterinaDecision: "continue_reforms" },
+        empireStatsChanges: { reforms: 2, stability: -1 }
+      },
+      {
+        text: "Замедлить реформы и укрепить традиции",
+        next: "slow_reforms",
+        set: { ekaterinaDecision: "slow_reforms" },
+        empireStatsChanges: { reforms: -1, stability: 1 }
+      }
+    ]
+  },
+  continue_reforms: {
+    text: "Вы решаете продолжить реформы Петра I. Это укрепляет Россию на международной арене, но вызывает недовольство среди части аристократии.",
+    fact: "Продолжение реформ укрепило российское государство и армию, но вызвало недовольство среди аристократии, что могло повлиять на внутреннюю стабильность.",
+    options: [
+      { text: "Продолжить диалог", next: "foreign_policy" }
+    ]
+  },
+  slow_reforms: {
+    text: "Вы решаете замедлить реформы и укрепить традиции. Это сохраняет стабильность в стране, но замедляет её развитие на международной арене.",
+    fact: "Замедление реформ помогло сохранить традиции и стабильность внутри страны, но ограничило возможности для дальнейшего прогресса в России.",
+    options: [
+      { text: "Продолжить диалог", next: "foreign_policy" }
+    ]
+  },
+
+  foreign_policy: {
+    text: "Екатерина I: Внешняя политика также имеет большое значение. Нужно ли укреплять союз с европейскими державами или продолжать политику независимости?",
+    fact: "Внешняя политика Екатерины I была направлена на сохранение статуса России как важной мировой державы, однако её правление также столкнулось с проблемами на внешней арене.",
+    options: [
+      {
+        text: "Укрепить союз с Европой",
+        next: "strengthen_alliance",
+        set: { ekaterinaDecision: "strengthen_alliance" },
+        empireStatsChanges: { diplomacy: 2, stability: -1 }
+      },
+      {
+        text: "Оставаться независимыми и сохранять нейтралитет",
+        next: "remain_neutral",
+        set: { ekaterinaDecision: "remain_neutral" },
+        empireStatsChanges: { diplomacy: -1, stability: 1 }
+      }
+    ]
+  },
+  strengthen_alliance: {
+    text: "Вы решаете укрепить союз с европейскими державами. Это позволяет России укрепить свои позиции на международной арене, но также увеличивает зависимость от внешней политики.",
+    fact: "Союз с Европой укрепил позиции России на международной арене, но также ограничил её независимость в некоторых вопросах.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  },
+  remain_neutral: {
+    text: "Вы решаете оставаться нейтральными, что позволяет избежать внешнего вмешательства, но снижает влияние России в Европе.",
+    fact: "Нейтралитет позволил России избегать конфликтов, но также ослабил её позиции в Европе.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  }
+},
+
+
+    // Диалог с Советником
+    advisor: {
+  start: {
+    text: "Советник: Пётр, Европейские войны охватывают континент. Мы должны вмешаться?",
+    fact: "Война за испанское наследство определяет дальнейший политический ландшафт Европы.",
+    options: [
+      {
+        text: "Вмешаться на стороне Франции",
+        next: "intervene_france",
+        set: { advisorDecision: "france_alliance" },
+        empireStatsChanges: { diplomacy: 2, army: 1, stability: -1 }
+      },
+      {
+        text: "Вмешаться на стороне Австрии",
+        next: "intervene_austria",
+        set: { advisorDecision: "austria_alliance" },
+        empireStatsChanges: { diplomacy: 1, army: 1, stability: -1 }
+      },
+      {
+        text: "Остаться нейтральным",
+        next: "remain_neutral",
+        set: { advisorDecision: "neutral" },
+        empireStatsChanges: { diplomacy: -1, stability: 1 }
+      }
+    ]
+  },
+  intervene_france: {
+    text: "Вы решаете вмешаться в войну на стороне Франции. Это приведёт к сильным дипломатическим последствиям. Франция одерживает победу, но в Европе возникает новый баланс сил.",
+    fact: "Победа Франции усиливает её влияние в Европе, но России приходится столкнуться с враждебными союзами других стран.",
+    options: [
+      { text: "Продолжить диалог", next: "tax_reform" }
+    ]
+  },
+  intervene_austria: {
+    text: "Вы решаете вмешаться на стороне Австрии. Это ослабляет Францию, но усиливает противостояние России с западными державами.",
+    fact: "Победа Австрии укрепляет её позиции, но создаёт напряжённость между Россией и Францией, в будущем ведя к конфликту.",
+    options: [
+      { text: "Продолжить диалог", next: "tax_reform" }
+    ]
+  },
+  remain_neutral: {
+    text: "Вы решаете остаться нейтральными, что позволяет избежать войны, но теряет влияние в Европе.",
+    fact: "Нейтралитет России может быть воспринят как слабость, что ослабляет её позиции на международной арене.",
+    options: [
+      { text: "Продолжить диалог", next: "tax_reform" }
+    ]
+  },
+
+  tax_reform: {
+    text: "Советник: Пётр, нам нужно провести налоговую реформу. Это укрепит государственный аппарат, но может вызвать сильное недовольство среди дворянства и крестьян.",
+    fact: "Реформа налогообложения могла значительно укрепить финансовую основу России, но вызывать сопротивление в среде аристократии.",
+    options: [
+      {
+        text: "Провести радикальные налоговые реформы",
+        next: "radical_reform",
+        set: { advisorDecision: "radical_reform" },
+        empireStatsChanges: { economy: 2, stability: -1 }
+      },
+      {
+        text: "Сохранить текущую налоговую систему",
+        next: "keep_current",
+        set: { advisorDecision: "keep_current" },
+        empireStatsChanges: { economy: -1, stability: 1 }
+      }
+    ]
+  },
+  radical_reform: {
+    text: "Вы решаете провести радикальные налоговые реформы. Это вызывает массовые протесты, но в конечном итоге укрепляет финансовую мощь России.",
+    fact: "Радикальные реформы увеличили доходы казны, но также спровоцировали социальные волнения, что могло повлиять на внутреннюю стабильность.",
+    options: [
+      { text: "Продолжить диалог", next: "foreign_alliance" }
+    ]
+  },
+  keep_current: {
+    text: "Вы решаете сохранить текущую налоговую систему. Это обеспечивает стабильность, но в будущем Россия будет испытывать трудности с финансированием армий и флота.",
+    fact: "Консервативная налоговая система позволяет избежать социальных потрясений, но ослабляет финансовую стабильность в долгосрочной перспективе.",
+    options: [
+      { text: "Продолжить диалог", next: "foreign_alliance" }
+    ]
+  },
+
+  foreign_alliance: {
+    text: "Советник: Пётр, нам стоит заключить альянс с другими странами. Что выберем: союз с Османской империей или Великобританией?",
+    fact: "Заключение альянсов с другими странами изменяет геополитическую ситуацию, создавая или разрушая коалиции.",
+    options: [
+      {
+        text: "Заключить альянс с Османской империей",
+        next: "osman_alliance",
+        set: { advisorDecision: "osman_alliance" },
+        empireStatsChanges: { diplomacy: 2, stability: -1 }
+      },
+      {
+        text: "Заключить альянс с Великобританией",
+        next: "britain_alliance",
+        set: { advisorDecision: "britain_alliance" },
+        empireStatsChanges: { diplomacy: 2, stability: -1 }
+      },
+      {
+        text: "Остаться независимыми и не вступать в альянсы",
+        next: "remain_independent",
+        set: { advisorDecision: "remain_independent" },
+        empireStatsChanges: { diplomacy: -1, stability: 1 }
+      }
+    ]
+  },
+  osman_alliance: {
+    text: "Вы заключаете альянс с Османской империей. Это даёт России стратегическое преимущество в регионе, но приводит к конфликтам с Европой.",
+    fact: "Союз с Османами укрепил позиции России на юге, но также привёл к дипломатическим трениям с европейскими державами.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  },
+  britain_alliance: {
+    text: "Вы заключаете альянс с Великобританией. Это даёт России доступ к важным торговым маршрутам и помогает укрепить её позиции в Европе.",
+    fact: "Союз с Великобританией усилил Россию на международной арене, но также привёл к напряжённости с другими европейскими странами.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  },
+  remain_independent: {
+    text: "Вы решаете остаться независимыми. Россия сохраняет свою самостоятельность, но теряет возможности для дипломатических манёвров.",
+    fact: "Независимость позволила России избегать внешнего вмешательства, но также ослабила её позиции в международных отношениях.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  }
+},
+
+
+    // Диалог с Алексеем П. 
+   alexei: {
+  start: {
+    text: "Алексей Петрович: Пётр, ты делаешь Россию сильной, но ценой огромных потерь для нашего народа. Мы теряем нашу душу. Ты уверен, что это правильный путь?",
+    fact: "Алексей был против многих реформ Петра, считая, что они разрушали традиции и культуру России. Этот конфликт в итоге стал причиной его трагической судьбы.",
+    options: [
+      {
+        text: "Продолжить реформы, несмотря на протесты Алексея",
+        next: "continue_reforms",
+        set: { alexeiDecision: "continue_reforms" },
+        empireStatsChanges: { reforms: 2, stability: -2 }
+      },
+      {
+        text: "Послушать Алексея и замедлить реформы",
+        next: "slow_reforms",
+        set: { alexeiDecision: "slow_reforms" },
+        empireStatsChanges: { reforms: -1, stability: 1 }
+      },
+      {
+        text: "Вернуться к традициям и остановить реформы",
+        next: "return_to_traditions",
+        set: { alexeiDecision: "return_to_traditions" },
+        empireStatsChanges: { reforms: -2, stability: 1, army: -1 }
+      }
+    ]
+  },
+  continue_reforms: {
+    text: "Вы решаете продолжить реформы, несмотря на протесты Алексея. Это укрепляет страну на международной арене, но вызывает глубокие разногласия в обществе.",
+    fact: "Продолжение реформ Петра укрепило Россию, но также углубило внутренние конфликты, особенно среди дворянства.",
+    options: [
+      { text: "Продолжить диалог", next: "alexei_fate" }
+    ]
+  },
+  slow_reforms: {
+    text: "Вы решаете замедлить реформы, чтобы сохранить традиции. Это приносит стабильность, но в долгосрочной перспективе Россия теряет на международной арене.",
+    fact: "Медленные реформы позволили сохранить социальную стабильность, но Россия не могла развиваться так быстро, как западные страны.",
+    options: [
+      { text: "Продолжить диалог", next: "alexei_fate" }
+    ]
+  },
+  return_to_traditions: {
+    text: "Вы решаете вернуться к старым традициям, остановив реформы. Это приводит к укреплению феодальной системы, но ослабляет российскую армию и флот.",
+    fact: "Возвращение к традициям сохранило старую структуру общества, но ограничило возможности для развития и модернизации страны.",
+    options: [
+      { text: "Продолжить диалог", next: "alexei_fate" }
+    ]
+  },
+
+  alexei_fate: {
+    text: "Алексей Петрович: Пётр, мне не осталось места в этом новом мире. Я не могу жить в стране, которую ты строишь. Но что мне делать?",
+    fact: "После конфликта с отцом, Алексей был арестован и умер в тюрьме при загадочных обстоятельствах, что стало одним из трагических моментов в истории России.",
+    options: [
+      {
+        text: "Отпустить Алексея, чтобы он мог вернуться к своим людям",
+        next: "let_alexei_go",
+        set: { alexeiFate: "let_alexei_go" },
+        empireStatsChanges: { stability: -1 }
+      },
+      {
+        text: "Приказать казнить Алексея, чтобы предотвратить угрозу",
+        next: "execute_alexei",
+        set: { alexeiFate: "execute_alexei" },
+        empireStatsChanges: { stability: -2 }
+      },
+      {
+        text: "Заключить Алексея в тюрьму на всю жизнь",
+        next: "imprison_alexei",
+        set: { alexeiFate: "imprison_alexei" },
+        empireStatsChanges: { stability: -2 }
+      }
+    ]
+  },
+  let_alexei_go: {
+    text: "Вы решаете отпустить Алексея, чтобы он мог вернуться к своим сторонникам. Это вызывает волнения в стране, но укрепляет имидж России как справедливого государства.",
+    fact: "Отпущение Алексея могло бы смягчить внутренние разногласия, но привело бы к новым политическим угрозам для Петра.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  },
+  execute_alexei: {
+    text: "Вы решаете казнить Алексея, чтобы предотвратить угрозу для своего правления. Это укрепляет вашу власть, но оставляет глубокую рану в российской истории.",
+    fact: "Казнь Алексея Петровича оставила тяжелое наследие для России, разделив страну и приведя к общественным волнениям.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  },
+  imprison_alexei: {
+    text: "Вы решаете заключить Алексея в тюрьму на всю жизнь. Это сохраняет вашу власть, но приводит к социальной нестабильности.",
+    fact: "Заключение Алексея в тюрьму укрепило власть Петра, но его смерть в заключении создала социальные волнения и разногласия в аристократическом слое.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  }
+},
+
+
+    // Диалог с Фридрих I
+    frederick: {
+  start: {
+    text: "Фридрих I: Пётр, Россия становится сильной, но в Европе идут войны за доминирование. Нужно ли нам вступить в борьбу за лидирующую позицию?",
+    fact: "Фридрих I был важной фигурой в Европе и активно стремился укрепить Пруссию, предоставляя потенциальные альянсы с другими странами, включая Россию.",
+    options: [
+      {
+        text: "Заключить союз с Пруссией",
+        next: "prussia_alliance",
+        set: { frederickDecision: "prussia_alliance" },
+        empireStatsChanges: { diplomacy: 2, army: 1, stability: -1 }
+      },
+      {
+        text: "Остаться нейтральными и не вмешиваться в европейские дела",
+        next: "remain_neutral",
+        set: { frederickDecision: "remain_neutral" },
+        empireStatsChanges: { diplomacy: 0, stability: 1 }
+      },
+      {
+        text: "Вмешаться в войны Европы и поддержать Австрию",
+        next: "intervene_austria",
+        set: { frederickDecision: "intervene_austria" },
+        empireStatsChanges: { diplomacy: 1, army: 1, stability: -1 }
+      }
+    ]
+  },
+  prussia_alliance: {
+    text: "Вы решаете заключить союз с Пруссией. Это укрепляет позиции России в Европе, но также затягивает страну в сложные европейские конфликты.",
+    fact: "Союз с Пруссией укрепил российские позиции в Центральной Европе, но также привёл к необходимости участия в войнах, что ослабляло внутреннюю стабильность.",
+    options: [
+      { text: "Продолжить диалог", next: "military_reform" }
+    ]
+  },
+  remain_neutral: {
+    text: "Вы решаете остаться нейтральными. Это помогает избежать войны, но Россия теряет возможность вмешиваться в важные европейские дела.",
+    fact: "Нейтралитет позволил избежать военных конфликтов, но ослабил влияние России на международной арене.",
+    options: [
+      { text: "Продолжить диалог", next: "military_reform" }
+    ]
+  },
+  intervene_austria: {
+    text: "Вы решаете вмешаться в европейские дела и поддержать Австрию. Это укрепляет позиции России, но приводит к долгосрочным дипломатическим и военным последствиям.",
+    fact: "Вмешательство в европейские войны укрепило Россию как мировую державу, но также привело к множеству внешних конфликтов.",
+    options: [
+      { text: "Продолжить диалог", next: "military_reform" }
+    ]
+  },
+
+  military_reform: {
+    text: "Фридрих I: Пётр, чтобы быть сильным, нам нужно модернизировать армию. Проводить ли нам военную реформу, улучшив оснащение и обучение войск?",
+    fact: "Военные реформы Петра I значительно улучшили армию России, сделав её одной из самых мощных в Европе.",
+    options: [
+      {
+        text: "Провести радикальные военные реформы",
+        next: "radical_military_reform",
+        set: { frederickDecision: "radical_military_reform" },
+        empireStatsChanges: { army: 2, stability: -1 }
+      },
+      {
+        text: "Провести умеренные изменения, сохраняя традиции",
+        next: "moderate_military_reform",
+        set: { frederickDecision: "moderate_military_reform" },
+        empireStatsChanges: { army: 1, stability: 0 }
+      }
+    ]
+  },
+  radical_military_reform: {
+    text: "Вы решаете провести радикальные реформы. Армия становится более профессиональной и мощной, но это приводит к увеличению расходов и напряженности среди аристократии.",
+    fact: "Радикальные реформы армии увеличили её эффективность и мощь, но вызвали социальное недовольство, особенно среди дворянства, которые теряли привилегии.",
+    options: [
+      { text: "Продолжить диалог", next: "foreign_alliances" }
+    ]
+  },
+  moderate_military_reform: {
+    text: "Вы решаете провести умеренные реформы, улучшив армию, но сохраняя старую систему. Это укрепляет армию, но не приводит к кардинальным изменениям.",
+    fact: "Умеренные реформы помогли укрепить армию, но не дали такого заметного преимущества на поле боя, как более радикальные изменения.",
+    options: [
+      { text: "Продолжить диалог", next: "foreign_alliances" }
+    ]
+  },
+
+  foreign_alliances: {
+    text: "Фридрих I: Нам нужно подумать о заключении союзов с другими странами. Союз с Францией или с Великобританией может изменить баланс сил. Какой путь выберем?",
+    fact: "Союзы с Францией или Великобританией могли бы укрепить Россию в долгосрочной перспективе, но также могли бы привести к сложным дипломатическим последствиям.",
+    options: [
+      {
+        text: "Заключить союз с Францией",
+        next: "france_alliance",
+        set: { frederickDecision: "france_alliance" },
+        empireStatsChanges: { diplomacy: 2, stability: -1 }
+      },
+      {
+        text: "Заключить союз с Великобританией",
+        next: "britain_alliance",
+        set: { frederickDecision: "britain_alliance" },
+        empireStatsChanges: { diplomacy: 2, stability: -1 }
+      },
+      {
+        text: "Остаться независимыми, не вступая в альянсы",
+        next: "remain_independent",
+        set: { frederickDecision: "remain_independent" },
+        empireStatsChanges: { diplomacy: -1, stability: 1 }
+      }
+    ]
+  },
+  france_alliance: {
+    text: "Вы заключаете союз с Францией. Это укрепляет Россию в Европе, но приводит к осложнениям с другими европейскими державами.",
+    fact: "Союз с Францией усилил позиции России в Европе, но также привёл к напряжённости с Великобританией и другими державами.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  },
+  britain_alliance: {
+    text: "Вы заключаете союз с Великобританией. Это даёт России новые возможности для торговли и укрепления позиций на морских путях.",
+    fact: "Союз с Великобританией усилил Россию на международной арене, но также привёл к напряжённости с Францией.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  },
+  remain_independent: {
+    text: "Вы решаете остаться независимыми и не вступать в альянсы. Это сохраняет независимость России, но ограничивает её возможности в международной политике.",
+    fact: "Независимость позволила России избежать вмешательства в европейские дела, но также ослабила её влияние на мировой арене.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  }
+},
+
+
+    // Диалог с Карл XII
+    charles: {
+  start: {
+    text: "Карл XII: Пётр, Россия и Швеция могут стать сильными союзниками. Нам нужно объединить усилия в борьбе против общего врага. Как ты смотришь на это?",
+    fact: "Карл XII был одним из величайших военных лидеров своего времени и сыграл ключевую роль в Северной войне. Его попытки укрепить Швецию включали стратегические союзы с соседними странами.",
+    options: [
+      {
+        text: "Заключить союз с Швецией",
+        next: "sweden_alliance",
+        set: { charlesDecision: "sweden_alliance" },
+        empireStatsChanges: { diplomacy: 2, army: 1, stability: -1 }
+      },
+      {
+        text: "Отказаться от союза и продолжить войну с Швецией",
+        next: "reject_alliance",
+        set: { charlesDecision: "reject_alliance" },
+        empireStatsChanges: { army: 1, diplomacy: -1, stability: 0 }
+      }
+    ]
+  },
+  sweden_alliance: {
+    text: "Вы решаете заключить союз с Швецией. Это укрепляет ваши позиции в Северной Европе, но вовлекает Россию в длительные войны с соседними державами.",
+    fact: "Союз с Карлом XII усилил позиции России в северных и восточных частях Европы, но также привел к росту напряженности с другими странами, особенно с Османской империей.",
+    options: [
+      { text: "Продолжить диалог", next: "osman_conflict" }
+    ]
+  },
+  reject_alliance: {
+    text: "Вы решаете отказаться от союза с Швецией и продолжить войну с Карлом XII. Это приводит к усилению противостояния с Швецией и новым вызовам для России.",
+    fact: "Отказ от союза с Карлом XII ослабил позиции России в Европе, но также привел к победам в важных битвах, несмотря на увеличившееся сопротивление Швеции.",
+    options: [
+      { text: "Продолжить диалог", next: "osman_conflict" }
+    ]
+  },
+
+  osman_conflict: {
+    text: "Карл XII: Османская империя - наш общий враг. Мы можем объединиться против них. Что ты думаешь, Пётр? Это будет выгодно для России.",
+    fact: "Османская империя была важным игроком в Восточной Европе, и её война с Швецией и Россией имела стратегические последствия.",
+    options: [
+      {
+        text: "Заключить альянс с Османской империей",
+        next: "osman_alliance",
+        set: { charlesDecision: "osman_alliance" },
+        empireStatsChanges: { diplomacy: 2, stability: -1 }
+      },
+      {
+        text: "Остаться нейтральными и не вмешиваться",
+        next: "remain_neutral",
+        set: { charlesDecision: "remain_neutral" },
+        empireStatsChanges: { stability: 1 }
+      }
+    ]
+  },
+  osman_alliance: {
+    text: "Вы решаете заключить альянс с Османской империей. Это укрепляет позиции России на южном фронте, но ведёт к дипломатическим трениям с Европой.",
+    fact: "Союз с Османской империей укрепил позиции России на южных рубежах, но также привёл к осложнениям в отношениях с другими европейскими державами.",
+    options: [
+      { text: "Продолжить диалог", next: "trilateral_alliance" }
+    ]
+  },
+  remain_neutral: {
+    text: "Вы решаете остаться нейтральными. Это сохраняет стабильность внутри страны, но ослабляет влияние России на международной арене.",
+    fact: "Нейтралитет позволил России избежать прямых военных конфликтов, но также ограничил её дипломатические возможности.",
+    options: [
+      { text: "Продолжить диалог", next: "trilateral_alliance" }
+    ]
+  },
+
+  trilateral_alliance: {
+    text: "Карл XII: Пётр, что если мы создадим альянс между Россией, Швецией и Османской империей? Это может изменить баланс сил в Европе и Азии.",
+    fact: "Трёхсторонний союз между Россией, Швецией и Османской империей мог бы изменить политическую карту Европы, приведя к укреплению взаимных позиций и возможному противостоянию с другими европейскими державами.",
+    options: [
+      {
+        text: "Заключить трехсторонний союз",
+        next: "trilateral_alliance_decision",
+        set: { charlesDecision: "trilateral_alliance" },
+        empireStatsChanges: { diplomacy: 2, stability: -1 }
+      },
+      {
+        text: "Отклонить союз и оставить Россию независимой",
+        next: "reject_trilateral_alliance",
+        set: { charlesDecision: "reject_trilateral_alliance" },
+        empireStatsChanges: { diplomacy: -1, stability: 1 }
+      }
+    ]
+  },
+  trilateral_alliance_decision: {
+    text: "Вы решаете заключить трехсторонний союз. Это укрепляет Россию в борьбе с внешними угрозами, но создает сложные дипломатические связи внутри Европы и Азии.",
+    fact: "Трёхсторонний союз обеспечил России стратегические преимущества, но также привёл к множеству дипломатических трений с соседними государствами.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  },
+  reject_trilateral_alliance: {
+    text: "Вы решаете отклонить предложение Карла XII и оставить Россию независимой. Это укрепляет её автономию, но ограничивает возможности для стратегических альянсов.",
+    fact: "Отказ от трёхстороннего союза позволил России сохранить независимость, но ослабил её влияние в Европе и Азии.",
+    options: [
+      { text: "Завершить", next: null }
+    ]
+  }
+}
+
+  };
+
+  let dialogueActive = false;
+  let currentFacts = [];
+  let factIndex = 0;
+
+  function updateFactText() {
+    if (!currentFacts.length) {
+      factBox.textContent = "Подойдите к персонажу и начните диалог.";
+      return;
+    }
+    factBox.textContent = currentFacts[factIndex];
+  }
+
+  function showFact(text) {
+    if (!text) {
+      currentFacts = [];
+      factIndex = 0;
+      updateFactText();
+      return;
+    }
+    currentFacts = Array.isArray(text) ? text : [text];
+    factIndex = 0;
+    updateFactText();
+  }
+
+  function closeDialogue() {
+    dialogueActive = false;
+    dialogBox.style.display = 'none';
+    choicesBox.style.display = 'none';
+    showFact(null);
+  }
+
+ function showDialogue(npcKey, nodeKey) {
+  dialogueActive = true;
+  const node = dialogues[npcKey][nodeKey];
+  if (!node) return closeDialogue();
+
+  dialogBox.style.display = 'block';
+  choicesBox.style.display = 'none'; // прячем кнопки до окончания печати
+
+  // Печатный эффект текста с колбэком для показа вариантов и фактов
+  typeText(dialogBox, node.text, 30, () => {
+    showFact(node.fact);
+
+    choicesBox.innerHTML = '';
+    if (node.options.length) {
+      choicesBox.style.display = 'block';
+      node.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt.text;
+       btn.onclick = () => {
+  if (opt.set) Object.assign(gameState, opt.set);
+  if (opt.empireStatsChanges) {
+    updateEmpireStats(opt.empireStatsChanges);
+  }
+  if (opt.next) {
+    showDialogue(npcKey, opt.next);
+  } else {
+    closeDialogue();
+  }
+};
+
+        choicesBox.appendChild(btn);
+      });
+    } else {
+      choicesBox.style.display = 'none';
+      setTimeout(() => closeDialogue(), 3000);
+    }
+  });
+}
+
+  function drawBackground() {
+    ctx.fillStyle = '#ffffe0';
+    ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+    ctx.strokeStyle = '#ead8c7';
+    ctx.lineWidth = 1;
+    const gridSize = 20;
+    for (let x = 0; x <= WIDTH; x += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, HEIGHT);
+      ctx.stroke();
+    }
+    for (let y = 0; y <= HEIGHT; y += gridSize) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(WIDTH, y);
+      ctx.stroke();
+    }
+  }
+
+  function gameLoop(timestamp = 0) {
+    const delta = timestamp - (gameLoop.lastTimestamp || 0);
+    gameLoop.lastTimestamp = timestamp;
+
+    drawBackground();
+
+    if (!dialogueActive) {
+      peter.update(delta, keysPressed);
+    }
+    npcs.forEach(npc => npc.draw(ctx));
+    peter.draw(ctx);
+
+    requestAnimationFrame(gameLoop);
+  }
+
+    function showSummary() {
+  let summaryHtml = '<h2>Оценка основных показателей Империи:</h2>';
+  summaryHtml += createProgressBar('Экономика', empireStats.economy);
+  summaryHtml += createProgressBar('Армия', empireStats.army);
+  summaryHtml += createProgressBar('Дипломатия', empireStats.diplomacy);
+  summaryHtml += createProgressBar('Реформы', empireStats.reforms);
+  summaryHtml += createProgressBar('Стабильность', empireStats.stability);
+
+  const stabilityVal = empireStats.stability;
+  if (stabilityVal >= 2) {
+    summaryHtml += '<p>Стабильность в государстве высокая — порядок и поддержка общества.</p>';
+  } else if (stabilityVal >= 0) {
+    summaryHtml += '<p>Стабильность умеренная — возможны локальные волнения.</p>';
+  } else {
+    summaryHtml += '<p>Стабильность низкая — возможны серьёзные проблемы и восстания.</p>';
+  }
+
+    summaryText.innerHTML = summaryHtml;
+    summaryModal.style.display = 'flex';
+  }
+
+  summaryBtn.addEventListener('click', showSummary);
+  summaryClose.addEventListener('click', () => {
+    summaryModal.style.display = 'none';
+  });
+
+  window.addEventListener('keydown', e => {
+    keysPressed[e.key] = true;
+    if (e.key === ' ' && !dialogueActive) {
+      for (let npc of npcs) {
+        if (peter.collidesWith(npc)) {
+          if (dialogues[npc.key]) {
+            showDialogue(npc.key, 'start');
+          } else {
+            alert('Диалог для этого персонажа пока не готов.');
+          }
+          break;
+        }
+      }
+    }
+  });
+
+  window.addEventListener('keyup', e => {
+    keysPressed[e.key] = false;
+  });
+
+  gameLoop();
+})();
+</script>
+
+</body>
+</html>
